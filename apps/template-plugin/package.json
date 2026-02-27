@@ -4,8 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node esbuild.mjs --watch",
-    "build": "node esbuild.mjs",
+    "dev": "node esbuild.mjs --mode dev --watch",
+    "build": "node esbuild.mjs --mode release",
+    "build:release": "node esbuild.mjs --mode release",
+    "build:local": "node esbuild.mjs --mode build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint --config ../../packages/config/eslint/base.cjs \"src/**/*.{ts,tsx}\"",
     "test": "vitest run --passWithNoTests"

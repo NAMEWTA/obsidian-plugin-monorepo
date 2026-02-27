@@ -27,8 +27,21 @@ Set `OBSIDIAN_VAULT_PATH` to auto-copy `main.js`, `manifest.json`, `styles.css` 
 pnpm build --filter template-plugin
 ```
 
-Build output:
+Release build output:
 
-- `apps/template-plugin/main.js`
-- `apps/template-plugin/manifest.json`
-- `apps/template-plugin/styles.css`
+- `apps/template-plugin/release/v0.1.0/main.js`
+- `apps/template-plugin/release/v0.1.0/manifest.json`
+- `apps/template-plugin/release/v0.1.0/styles.css`
+
+Explicit release build:
+
+```bash
+pnpm --filter ./apps/template-plugin build:release -- --version 0.1.0
+```
+
+Template copy checklist for a new plugin:
+
+1. Rename folder under `apps/<new-plugin-name>`.
+2. Update `apps/<new-plugin-name>/package.json` name/version.
+3. Update `apps/<new-plugin-name>/manifest.json` id/name/version/minAppVersion.
+4. Update `apps/<new-plugin-name>/versions.json`.

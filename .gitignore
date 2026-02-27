@@ -2,10 +2,12 @@ node_modules/
 .turbo/
 dist/
 coverage/
+apps/*/main.js
+apps/*/release/
 *.log
 *.tgz
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
-
+__pycache__

@@ -1,16 +1,9 @@
 name: Release Plugin
 
 on:
-  workflow_dispatch:
-    inputs:
-      app:
-        description: "App folder name under apps/"
-        required: true
-        type: string
-      version:
-        description: "Semver release version, e.g. 1.2.3"
-        required: true
-        type: string
+  push:
+    tags:
+      - "v-*-*"
 
 jobs:
   release:
@@ -21,6 +14,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Parse release tag
+        id: parse
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ ! "${TAG}" =~ ^v-(.+)-([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
+            echo "Invalid release tag: ${TAG}"
+            echo "Expected format: v-<project-name>-<version>"
+            exit 1
+          fi
+
+          APP="${BASH_REMATCH[1]}"
+          VERSION="${BASH_REMATCH[2]}"
+
+          if [[ ! -d "apps/${APP}" ]]; then
+            echo "App not found: apps/${APP}"
+            exit 1
+          fi
+
+          echo "app=${APP}" >> "${GITHUB_OUTPUT}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -37,23 +52,29 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Prepare release
-        run: pnpm release:plugin --app "${{ inputs.app }}" --version "${{ inputs.version }}"
+        run: pnpm release:plugin --app "${{ steps.parse.outputs.app }}" --version "${{ steps.parse.outputs.version }}"
 
       - name: Package plugin artifact
+        id: package
+        shell: bash
         run: |
-          cd "apps/${{ inputs.app }}"
-          zip -j "../../${{ inputs.app }}-${{ inputs.version }}.zip" main.js manifest.json styles.css
+          APP="${{ steps.parse.outputs.app }}"
+          VERSION="${{ steps.parse.outputs.version }}"
+          ARTIFACT="${APP}-v${VERSION}.zip"
+          RELEASE_DIR="apps/${APP}/release/v${VERSION}"
+          cd "${RELEASE_DIR}"
+          zip -j "../../../../${ARTIFACT}" main.js manifest.json styles.css
+          echo "artifact=${ARTIFACT}" >> "${GITHUB_OUTPUT}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.app }}-${{ inputs.version }}
-          path: ${{ inputs.app }}-${{ inputs.version }}.zip
+          name: ${{ steps.parse.outputs.app }}-v${{ steps.parse.outputs.version }}
+          path: ${{ steps.package.outputs.artifact }}
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.app }}-v${{ inputs.version }}
-          name: ${{ inputs.app }} v${{ inputs.version }}
-          files: ${{ inputs.app }}-${{ inputs.version }}.zip
-
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.parse.outputs.app }} v${{ steps.parse.outputs.version }}
+          files: ${{ steps.package.outputs.artifact }}
