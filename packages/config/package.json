@@ -1,0 +1,14 @@
+{
+  "name": "@repo/config",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/react-lib": "./tsconfig/react-lib.json",
+    "./tsconfig/obsidian-app": "./tsconfig/obsidian-app.json",
+    "./eslint/base": "./eslint/base.cjs",
+    "./turbo/base": "./turbo/turbo.base.json"
+  }
+}
+

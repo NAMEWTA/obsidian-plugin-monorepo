@@ -1,0 +1,59 @@
+name: Release Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App folder name under apps/"
+        required: true
+        type: string
+      version:
+        description: "Semver release version, e.g. 1.2.3"
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare release
+        run: pnpm release:plugin --app "${{ inputs.app }}" --version "${{ inputs.version }}"
+
+      - name: Package plugin artifact
+        run: |
+          cd "apps/${{ inputs.app }}"
+          zip -j "../../${{ inputs.app }}-${{ inputs.version }}.zip" main.js manifest.json styles.css
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.app }}-${{ inputs.version }}
+          path: ${{ inputs.app }}-${{ inputs.version }}.zip
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.app }}-v${{ inputs.version }}
+          name: ${{ inputs.app }} v${{ inputs.version }}
+          files: ${{ inputs.app }}-${{ inputs.version }}.zip
+

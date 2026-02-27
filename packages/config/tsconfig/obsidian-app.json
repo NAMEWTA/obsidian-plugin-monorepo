@@ -1,0 +1,10 @@
+{
+  "extends": "./react-lib.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "allowJs": false
+  }
+}
+

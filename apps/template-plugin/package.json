@@ -1,0 +1,26 @@
+{
+  "name": "template-plugin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.mjs --watch",
+    "build": "node esbuild.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint --config ../../packages/config/eslint/base.cjs \"src/**/*.{ts,tsx}\"",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@repo/core": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "antd": "^5.24.2",
+    "obsidian": "^1.8.10",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "esbuild": "^0.25.1"
+  }
+}

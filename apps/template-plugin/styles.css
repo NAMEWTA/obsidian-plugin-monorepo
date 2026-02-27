@@ -1,0 +1,11 @@
+.template-plugin-settings-root {
+  margin-top: 12px;
+}
+
+.template-plugin-settings-card {
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+}
+

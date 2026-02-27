@@ -1,0 +1,16 @@
+{
+  "extends": "./packages/config/tsconfig/base.json",
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./apps/template-plugin"
+    }
+  ]
+}
+

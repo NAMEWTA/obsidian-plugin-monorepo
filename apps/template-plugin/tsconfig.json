@@ -1,0 +1,20 @@
+{
+  "extends": "../../packages/config/tsconfig/obsidian-app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "baseUrl": "."
+  },
+  "references": [
+    {
+      "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/ui"
+    }
+  ],
+  "include": [
+    "src",
+    "esbuild.mjs"
+  ]
+}
+
