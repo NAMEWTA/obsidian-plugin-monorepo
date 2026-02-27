@@ -187,9 +187,38 @@ function ensureGitPrechecks(repoRoot) {
     fail("Working tree must be clean before running release pipeline.");
   }
 
-  run("git", ["remote", "get-url", "origin"], { cwd: repoRoot });
-
   return currentBranch;
+}
+
+function resolveReleaseRemote(repoRoot, preferredRemote) {
+  const remotesRaw = run("git", ["remote"], { cwd: repoRoot });
+  const remotes = remotesRaw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (remotes.length === 0) {
+    fail("No git remote configured. Add a remote (for example, origin) before running release pipeline.");
+  }
+
+  if (preferredRemote) {
+    if (!remotes.includes(preferredRemote)) {
+      fail(`Remote '${preferredRemote}' does not exist. Available remotes: ${remotes.join(", ")}`);
+    }
+    return preferredRemote;
+  }
+
+  if (remotes.includes("origin")) {
+    return "origin";
+  }
+
+  if (remotes.length === 1) {
+    return remotes[0];
+  }
+
+  fail(
+    `Multiple remotes found (${remotes.join(", ")}), but no origin is configured. Pass --remote <name> explicitly.`
+  );
 }
 
 function resolveBaseline(repoRoot, app, fromRef) {
@@ -546,7 +575,7 @@ function generateCommitMessage(app, version, summary) {
   return `release(${app}): v${version} - ${highlights.join("; ")}`;
 }
 
-function verifyTagNotExists(repoRoot, tagName) {
+function verifyTagNotExists(repoRoot, tagName, remoteName) {
   const localTag = spawnSync("git", ["rev-parse", "--verify", `refs/tags/${tagName}`], {
     cwd: repoRoot,
     stdio: "ignore",
@@ -556,11 +585,11 @@ function verifyTagNotExists(repoRoot, tagName) {
     fail(`Tag already exists locally: ${tagName}`);
   }
 
-  const remoteTag = run("git", ["ls-remote", "--tags", "origin", tagName], {
+  const remoteTag = run("git", ["ls-remote", "--tags", remoteName, tagName], {
     cwd: repoRoot
   });
   if (remoteTag) {
-    fail(`Tag already exists on origin: ${tagName}`);
+    fail(`Tag already exists on ${remoteName}: ${tagName}`);
   }
 }
 
@@ -577,6 +606,7 @@ function ensureStagedChanges(repoRoot) {
 const app = getArgValue("--app");
 const version = getArgValue("--version");
 const fromRef = getArgValue("--from-ref");
+const remoteArg = getArgValue("--remote");
 
 if (!app || !version) {
   fail("Usage: node scripts/release-orchestrator.mjs --app <project-name> --version <x.y.z> [--from-ref <ref>]");
@@ -593,8 +623,10 @@ if (!existsSync(appDir)) {
 }
 
 const branch = ensureGitPrechecks(repoRoot);
+const remoteName = resolveReleaseRemote(repoRoot, remoteArg);
+run("git", ["remote", "get-url", remoteName], { cwd: repoRoot });
 const tagName = `v-${app}-${version}`;
-verifyTagNotExists(repoRoot, tagName);
+verifyTagNotExists(repoRoot, tagName, remoteName);
 
 const baseline = resolveBaseline(repoRoot, app, fromRef);
 const diff = collectDiffSummary(repoRoot, app, baseline);
@@ -645,17 +677,18 @@ const tagMessageLines = [
 ];
 
 runInherit("git", ["commit", "-m", commitMessage], { cwd: repoRoot });
-runInherit("git", ["push", "origin", branch], { cwd: repoRoot });
+runInherit("git", ["push", remoteName, branch], { cwd: repoRoot });
 runInherit("git", ["tag", "-a", tagName, "-m", tagMessageLines.join("\n")], {
   cwd: repoRoot
 });
-runInherit("git", ["push", "origin", tagName], { cwd: repoRoot });
+runInherit("git", ["push", remoteName, tagName], { cwd: repoRoot });
 
 const summary = {
   app,
   version,
   tag: tagName,
   branch,
+  remote: remoteName,
   baseline,
   releaseDir: releaseDir.replace(/\\/g, "/"),
   commitMessage,
