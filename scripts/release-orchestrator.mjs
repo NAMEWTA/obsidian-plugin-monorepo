@@ -221,30 +221,67 @@ function resolveReleaseRemote(repoRoot, preferredRemote) {
   );
 }
 
-function resolveBaseline(repoRoot, app, fromRef) {
-  const tagPrefix = `v-${app}-`;
-  const rawTags = run("git", ["tag", "--list", `${tagPrefix}*`], { cwd: repoRoot });
-  const tags = rawTags
+function parseReleaseTags(rawTagOutput, tagPrefix) {
+  const entries = rawTagOutput
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
+    .map((line) => {
+      const ref = line.includes("\t") ? line.split("\t").at(-1) : line;
+      return (ref ?? "").replace(/^refs\/tags\//, "").replace(/\^\{\}$/, "");
+    })
+    .filter((tag) => tag.startsWith(tagPrefix))
     .map((tag) => ({
       tag,
       version: tag.slice(tagPrefix.length)
     }))
-    .filter((entry) => assertSemver(entry.version))
-    .sort((a, b) => compareSemver(b.version, a.version));
+    .filter((entry) => assertSemver(entry.version));
 
-  if (tags.length > 0) {
-    return tags[0].tag;
+  const unique = new Map();
+  for (const entry of entries) {
+    unique.set(entry.tag, entry);
   }
 
-  if (!fromRef) {
-    fail(`No historical tag found for ${app}. Provide --from-ref for first release.`);
+  return [...unique.values()].sort((a, b) => compareSemver(b.version, a.version));
+}
+
+function resolveBaseline(repoRoot, app, fromRef, remoteName) {
+  if (fromRef) {
+    run("git", ["rev-parse", "--verify", `${fromRef}^{commit}`], { cwd: repoRoot });
+    return fromRef;
   }
 
-  run("git", ["rev-parse", "--verify", `${fromRef}^{commit}`], { cwd: repoRoot });
-  return fromRef;
+  const tagPrefix = `v-${app}-`;
+  const localTags = parseReleaseTags(run("git", ["tag", "--list", `${tagPrefix}*`], { cwd: repoRoot }), tagPrefix);
+
+  if (localTags.length > 0) {
+    return localTags[0].tag;
+  }
+
+  const remoteTagOutput = run("git", ["ls-remote", "--tags", remoteName, `${tagPrefix}*`], {
+    cwd: repoRoot
+  });
+  const remoteTags = parseReleaseTags(remoteTagOutput, tagPrefix);
+  if (remoteTags.length > 0) {
+    const latestRemoteTag = remoteTags[0].tag;
+    run("git", ["fetch", remoteName, "tag", latestRemoteTag], { cwd: repoRoot });
+    return latestRemoteTag;
+  }
+
+  const appPath = `apps/${app}`;
+  const appCommitsRaw = run("git", ["rev-list", "--reverse", "HEAD", "--", appPath], {
+    cwd: repoRoot
+  });
+  const firstCommit = appCommitsRaw
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.length > 0);
+
+  if (!firstCommit) {
+    fail(`No commit history found for ${appPath}.`);
+  }
+
+  return firstCommit;
 }
 
 function collectDiffSummary(repoRoot, app, baseline) {
@@ -628,7 +665,7 @@ run("git", ["remote", "get-url", remoteName], { cwd: repoRoot });
 const tagName = `v-${app}-${version}`;
 verifyTagNotExists(repoRoot, tagName, remoteName);
 
-const baseline = resolveBaseline(repoRoot, app, fromRef);
+const baseline = resolveBaseline(repoRoot, app, fromRef, remoteName);
 const diff = collectDiffSummary(repoRoot, app, baseline);
 const versionFiles = updateVersionFiles(appDir, app, version);
 const changelogPath = updateChangelog(appDir, app, version, baseline, diff.summary);
