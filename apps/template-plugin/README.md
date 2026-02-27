@@ -49,8 +49,8 @@ Template copy checklist for a new plugin:
 <!-- RELEASE_META:START -->
 ## Release Meta
 
-- Latest Version: `0.1.1`
-- Latest Tag: `v-template-plugin-0.1.1`
-- Release Directory: `apps/template-plugin/release/v0.1.1/`
+- Latest Version: `0.1.2`
+- Latest Tag: `v-template-plugin-0.1.2`
+- Release Directory: `apps/template-plugin/release/v0.1.2/`
 - Updated At: `2026-02-27`
 <!-- RELEASE_META:END -->

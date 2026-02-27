@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.1.2 - 2026-02-27
+
+- Baseline: `846d07b`
+
+### Added
+- None.
+
+### Changed
+- Internal maintenance updates.
+
+### Fixed
+- None.
+
+### Docs
+- None.
+
+### Build
+- None.
+
 ## 0.1.1 - 2026-02-27
 
 - Baseline: `5fa698cd3b38f38c9dd6c27a9f22c488b040a590`

@@ -72,5 +72,5 @@ Release guardrails:
 
 | Plugin | Version | Tag | Release Dir | Updated |
 | --- | --- | --- | --- | --- |
-| template-plugin | 0.1.1 | v-template-plugin-0.1.1 | apps/template-plugin/release/v0.1.1/ | 2026-02-27 |
+| template-plugin | 0.1.2 | v-template-plugin-0.1.2 | apps/template-plugin/release/v0.1.2/ | 2026-02-27 |
 <!-- RELEASE_TABLE:END -->
