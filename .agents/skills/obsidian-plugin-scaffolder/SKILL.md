@@ -1,92 +1,77 @@
 ---
 name: obsidian-plugin-scaffolder
-description: [TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill - specific scenarios, file types, or tasks that trigger it.]
-# ������ OPTIONAL FIELDS (uncomment as needed) ������
-# context: fork                    # Run in subagent context. IMPORTANT: Required for skills that subagents should use via Task tool
-# agent: Explore                   # Subagent type when context: fork (Explore, Plan, general-purpose, or custom)
-# disable-model-invocation: true   # Only allow manual /skill-name invocation, prevent auto-triggering
-# user-invocable: false            # Hide from / menu (for background knowledge only)
-# allowed-tools: Read, Grep, Bash(git *), Bash(npm *)  # Tools allowed without permission prompts (wildcards supported)
-# argument-hint: [filename]        # Autocomplete hint for arguments. Use $ARGUMENTS in content to access user input
+description: 基于 apps/template-plugin 在当前 Obsidian monorepo 中初始化新插件子项目。Use when creating a new plugin app and resetting metadata (name/version/manifest/author fields) instead of copying template values verbatim.
+argument-hint: [plugin-name]
 ---
 
 # Obsidian Plugin Scaffolder
 
 ## Overview
 
-[TODO: 1-2 sentences explaining what this skill enables]
+根据插件名初始化 `apps/<plugin-name>`，复用 `apps/template-plugin` 的技术架构与目录结构，并自动重置项目元信息为新插件值。保持 monorepo 技术约束（pnpm workspace、turbo task、TypeScript/React 架构）不变，仅替换插件专属配置。
 
-## Structuring This Skill
+## Trigger Conditions
 
-[TODO: Choose the structure that best fits this skill's purpose. Common patterns:
+在以下场景触发本技能：
 
-**1. Workflow-Based** (best for sequential processes)
-- Works well when there are clear step-by-step procedures
-- Example: DOCX skill with "Workflow Decision Tree" �� "Reading" �� "Creating" �� "Editing"
-- Structure: ## Overview �� ## Workflow Decision Tree �� ## Step 1 �� ## Step 2...
+- 需要在本仓库新增 Obsidian 插件应用
+- 需要复用 `apps/template-plugin` 结构但避免“原样复制元信息”
+- 用户只提供插件名，希望自动完成脚手架与关键字段替换
 
-**2. Task-Based** (best for tool collections)
-- Works well when the skill offers different operations/capabilities
-- Example: PDF skill with "Quick Start" �� "Merge PDFs" �� "Split PDFs" �� "Extract Text"
-- Structure: ## Overview �� ## Quick Start �� ## Task Category 1 �� ## Task Category 2...
+## Workflow
 
-**3. Reference/Guidelines** (best for standards or specifications)
-- Works well for brand guidelines, coding standards, or requirements
-- Example: Brand styling with "Brand Guidelines" �� "Colors" �� "Typography" �� "Features"
-- Structure: ## Overview �� ## Guidelines �� ## Specifications �� ## Usage...
+### 1. Parse Required Input
 
-**4. Capabilities-Based** (best for integrated systems)
-- Works well when the skill provides multiple interrelated features
-- Example: Product Management with "Core Capabilities" �� numbered capability list
-- Structure: ## Overview �� ## Core Capabilities �� ### 1. Feature �� ### 2. Feature...
+读取 `$ARGUMENTS` 作为插件名。插件名必须是 hyphen-case（如 `daily-notes-helper`）。
 
-Patterns can be mixed and matched as needed. Most skills combine patterns (e.g., start with task-based, add workflow for complex operations).
+如果 `$ARGUMENTS` 为空，先要求用户补充插件名，再继续。
 
-Delete this entire "Structuring This Skill" section when done - it's just guidance.]
+### 2. Run Scaffold Script
 
-## [TODO: Replace with the first main section based on chosen structure]
+运行脚本初始化插件目录并完成结构复制与字段重写：
 
-[TODO: Add content here. See examples in existing skills:
-- Code samples for technical skills
-- Decision trees for complex workflows
-- Concrete examples with realistic user requests
-- References to scripts/templates/references as needed]
+```bash
+python scripts/init_obsidian_plugin.py <plugin-name>
+```
 
-## Resources
+可选参数（按需）：
 
-This skill includes example resource directories that demonstrate how to organize different types of bundled resources:
+```bash
+python scripts/init_obsidian_plugin.py <plugin-name> \
+  --display-name "Daily Notes Helper" \
+  --description "Description for manifest.json" \
+  --author "namewta" \
+  --author-url "https://github.com/NAMEWTA" \
+  --min-app-version 1.5.0
+```
 
-### scripts/
-Executable code (Python/Bash/etc.) that can be run directly to perform specific operations.
+### 3. Verify Metadata Reset
 
-**Examples from other skills:**
-- PDF skill: `fill_fillable_fields.py`, `extract_form_field_info.py` - utilities for PDF manipulation
-- DOCX skill: `document.py`, `utilities.py` - Python modules for document processing
+重点校验以下文件已从模板值切换为新项目值：
 
-**Appropriate for:** Python scripts, shell scripts, or any executable code that performs automation, data processing, or specific operations.
+- `apps/<plugin-name>/package.json`
+- `apps/<plugin-name>/manifest.json`
+- `apps/<plugin-name>/versions.json`
+- `apps/<plugin-name>/README.md`
+- `apps/<plugin-name>/CHANGELOG.md`
 
-**Note:** Scripts may be executed without loading into context, but can still be read by Claude for patching or environment adjustments.
+必须满足：
 
-### references/
-Documentation and reference material intended to be loaded into context to inform Claude's process and thinking.
+- `name/id` 改为新插件名
+- `version` 重置为 `0.0.1`
+- `versions.json` 仅保留 `0.0.1`
+- `author` 与 `authorUrl` 明确设置为目标项目值（默认可用 `namewta` / `https://github.com/NAMEWTA`，但禁止无脑照抄）
 
-**Examples from other skills:**
-- Product management: `communication.md`, `context_building.md` - detailed workflow guides
-- BigQuery: API reference documentation and query examples
-- Finance: Schema documentation, company policies
+### 4. Run Basic Checks
 
-**Appropriate for:** In-depth documentation, API references, database schemas, comprehensive guides, or any detailed information that Claude should reference while working.
+执行最小验证，确认初始化后可进入开发：
 
-### assets/
-Files not intended to be loaded into context, but rather used within the output Claude produces.
+```bash
+pnpm --filter <plugin-name> typecheck
+```
 
-**Examples from other skills:**
-- Brand styling: PowerPoint template files (.pptx), logo files
-- Frontend builder: HTML/React boilerplate project directories
-- Typography: Font files (.ttf, .woff2)
+如依赖未安装或环境受限，明确记录未执行原因。
 
-**Appropriate for:** Templates, boilerplate code, document templates, images, icons, fonts, or any files meant to be copied or used in the final output.
+## Notes
 
----
-
-**Any unneeded directories can be deleted.** Not every skill requires all three types of resources.
+读取 `references/scaffold_configuration_matrix.md` 获取完整的“复制项/重写项”矩阵与字段规则。执行初始化时始终遵循“复制架构，重置项目元信息”的原则。

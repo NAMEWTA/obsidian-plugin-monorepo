@@ -33,6 +33,9 @@ Trigger with phrases like &quot;obsidian error&quot;, &quot;fix obsidian plugin&
 </description>
     <allowedTools>Read, Grep, Bash(node:*)</allowedTools>
   </skill>
+  <skill name="obsidian-plugin-scaffolder" path="obsidian-plugin-scaffolder">
+    <description>基于 apps/template-plugin 初始化新的 Obsidian 插件子项目，并重置项目元信息（name/version/manifest/author）而不是原样复制模板值。</description>
+  </skill>
   <skill name="security-review" path="security-review">
     <description>Use this skill when adding authentication, handling user input, working with secrets, creating API endpoints, or implementing payment/sensitive features. Provides comprehensive security checklist and patterns.</description>
   </skill>
