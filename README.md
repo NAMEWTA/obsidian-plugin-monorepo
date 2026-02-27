@@ -20,8 +20,8 @@ scripts/                 # verify/release scripts
 
 ## Requirements
 
-- Node.js `20+`
-- pnpm `10+`
+- Node.js `24.13.0+`
+- pnpm `10.29.2+`
 
 ## Commands
 
@@ -32,6 +32,7 @@ scripts/                 # verify/release scripts
 - `pnpm test`
 - `pnpm verify`
 - `pnpm release:plugin --app template-plugin --version 0.1.0`
+- `pnpm release:pipeline --app <project-name> --version <x.y.z> [--from-ref <ref>]`
 
 If pnpm warns that `esbuild` build scripts are blocked, run `pnpm approve-builds` once and allow `esbuild`.
 
@@ -65,3 +66,11 @@ Release guardrails:
 - `version` in tag must match `package.json` and `manifest.json`.
 - `versions.json` must contain the release key and map to `manifest.minAppVersion`.
 - CI never auto-bumps versions.
+
+<!-- RELEASE_TABLE:START -->
+## Plugin Release Index
+
+| Plugin | Version | Tag | Release Dir | Updated |
+| --- | --- | --- | --- | --- |
+| template-plugin | 0.1.0 | v-template-plugin-0.1.0 | apps/template-plugin/release/v0.1.0/ | 2026-02-27 |
+<!-- RELEASE_TABLE:END -->

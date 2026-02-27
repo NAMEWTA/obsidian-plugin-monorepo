@@ -45,3 +45,12 @@ Template copy checklist for a new plugin:
 2. Update `apps/<new-plugin-name>/package.json` name/version.
 3. Update `apps/<new-plugin-name>/manifest.json` id/name/version/minAppVersion.
 4. Update `apps/<new-plugin-name>/versions.json`.
+
+<!-- RELEASE_META:START -->
+## Release Meta
+
+- Latest Version: `0.1.0`
+- Latest Tag: `v-template-plugin-0.1.0`
+- Release Directory: `apps/template-plugin/release/v0.1.0/`
+- Updated At: `2026-02-27`
+<!-- RELEASE_META:END -->
