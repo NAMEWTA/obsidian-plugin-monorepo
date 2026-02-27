@@ -135,7 +135,7 @@ def main():
         '--path',
         type=Path,
         default=None,
-        help='输出目录路径（默认：.claude/commands）'
+        help='输出目录路径（默认：.agents/commands）'
     )
     
     args = parser.parse_args()
@@ -150,15 +150,15 @@ def main():
     if args.path:
         output_path = args.path
     else:
-        # 默认路径：从当前目录查找 .claude/commands
+        # 默认路径：从当前目录查找 .agents/commands
         current = Path.cwd()
-        output_path = current / '.claude' / 'commands'
+        output_path = current / '.agents' / 'commands'
         
-        # 如果当前目录没有 .claude，尝试向上查找
-        if not (current / '.claude').exists():
+        # 如果当前目录没有 .agents，尝试向上查找
+        if not (current / '.agents').exists():
             for parent in current.parents:
-                if (parent / '.claude').exists():
-                    output_path = parent / '.claude' / 'commands'
+                if (parent / '.agents').exists():
+                    output_path = parent / '.agents' / 'commands'
                     break
     
     print(f"🚀 正在创建 command: {args.command_name}")
