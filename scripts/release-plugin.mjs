@@ -46,6 +46,30 @@ function checkRequiredFiles(directory, fileNames) {
   }
 }
 
+function collectWorkspaceDependencies(packageJson) {
+  const sections = [
+    packageJson.dependencies,
+    packageJson.optionalDependencies,
+    packageJson.peerDependencies,
+    packageJson.devDependencies
+  ];
+  const workspaceDeps = new Set();
+
+  for (const section of sections) {
+    if (!section || typeof section !== "object") {
+      continue;
+    }
+
+    for (const [name, range] of Object.entries(section)) {
+      if (typeof range === "string" && range.startsWith("workspace:")) {
+        workspaceDeps.add(name);
+      }
+    }
+  }
+
+  return [...workspaceDeps];
+}
+
 const app = getArgValue("--app");
 const version = getArgValue("--version");
 
@@ -82,6 +106,7 @@ if (!existsSync(versionsPath)) {
 const manifest = readJson(manifestPath);
 const versions = readJson(versionsPath);
 const packageJson = readJson(packagePath);
+const workspaceDeps = collectWorkspaceDependencies(packageJson);
 
 const errors = [];
 
@@ -120,6 +145,13 @@ execSync(`node scripts/verify-plugin.mjs --app ${quoteValue(app)} --version ${qu
   stdio: "inherit",
   cwd: rootDir
 });
+
+for (const workspaceDep of workspaceDeps) {
+  execSync(`pnpm --filter ${quoteValue(`${workspaceDep}...`)} build`, {
+    stdio: "inherit",
+    cwd: rootDir
+  });
+}
 
 execSync(
   `pnpm --filter ${quoteValue(`./apps/${app}`)} build:release`,
