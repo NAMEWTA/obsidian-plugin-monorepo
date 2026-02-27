@@ -1,7 +1,7 @@
 {
   "id": "template-plugin",
   "name": "Template Plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.5.0",
   "description": "Template Obsidian plugin built with pnpm + turbo monorepo, React 19 and Ant Design.",
   "author": "Your Name",
